@@ -55,6 +55,23 @@ export class CartController {
     return this.cartService.addCartItem(cartItems, userId);
   }
 
+  @del('/cart/{userId}/remove/{id}', {
+    responses: {
+      '200': {
+        description: 'Current Cart instance',
+        content: {'application/json': {schema: getModelSchemaRef(Cart)}},
+      },
+    },
+  })
+  async removeCartItem(
+    @param.path.string('userId')
+    userId: string,
+    @param.path.string('id')
+    id: string,
+  ): Promise<Cart> {
+    return this.cartService.removeCartItem(id, userId);
+  }
+
   @post('/cart', {
     responses: {
       '200': {

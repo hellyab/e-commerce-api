@@ -9,6 +9,7 @@ import {RestApplication} from '@loopback/rest';
 import {ServiceMixin} from '@loopback/service-proxy';
 import path from 'path';
 import {MySequence} from './sequence';
+import * as dotenv from "dotenv";
 
 export {ApplicationConfig};
 
@@ -40,5 +41,7 @@ export class ECommerceAPIApplication extends BootMixin(
         nested: true,
       },
     };
+
+    dotenv.config();
   }
 }

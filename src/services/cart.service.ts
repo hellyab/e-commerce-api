@@ -45,6 +45,23 @@ export class CartService {
     }
   };
 
+  removeCartItem = async (itemId: string, userId: string): Promise<Cart> => {
+    let cart = await this.cartRepository.findOne({
+      where: {
+        userId: userId,
+      },
+    });
+
+    if (cart != null) {
+      let c = cart.items?.filter(item => item.itemId !== itemId);
+      cart.items = c;
+      await this.cartRepository.replaceById(cart.userId, cart);
+      return Promise.resolve(cart);
+    } else {
+      return Promise.reject(null);
+    }
+  };
+
   /*
    * Add service methods here
    */

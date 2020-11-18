@@ -4,8 +4,7 @@ import {juggler} from '@loopback/repository';
 const config = {
   name: 'Mongo',
   connector: 'mongodb',
-  url:
-    'mongodb+srv://admin:gdlqTN5txtngk1JT@cluster0.bbicr.mongodb.net/e-commerceAPI?retryWrites=true&w=majority',
+  url: 'process.env.MONGO_DB_URL',
   useNewUrlParser: true,
 };
 
@@ -24,6 +23,11 @@ export class MongoDataSource
     @inject('datasources.config.Mongo', {optional: true})
     dsConfig: object = config,
   ) {
+    console.log();
+    
+    Object.assign(dsConfig, {
+      url: process.env.MONGO_DB_URL,
+    });
     super(dsConfig);
   }
 }
