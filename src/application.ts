@@ -1,15 +1,19 @@
+import {UserServiceBindings} from '@loopback/authentication-jwt/dist/keys';
+import {AuthenticationComponent} from '@loopback/authentication/dist/authentication.component';
 import {BootMixin} from '@loopback/boot';
 import {ApplicationConfig} from '@loopback/core';
+import {RepositoryMixin} from '@loopback/repository';
+import {RestApplication} from '@loopback/rest';
 import {
   RestExplorerBindings,
   RestExplorerComponent,
 } from '@loopback/rest-explorer';
-import {RepositoryMixin} from '@loopback/repository';
-import {RestApplication} from '@loopback/rest';
 import {ServiceMixin} from '@loopback/service-proxy';
+import * as dotenv from 'dotenv';
 import path from 'path';
+import {JWTAuthenticationComponent} from './authentication/jwt-authentication-component';
+import {MongoDataSource} from './datasources';
 import {MySequence} from './sequence';
-import * as dotenv from "dotenv";
 
 export {ApplicationConfig};
 
@@ -43,5 +47,9 @@ export class ECommerceAPIApplication extends BootMixin(
     };
 
     dotenv.config();
+
+    this.component(AuthenticationComponent);
+    this.component(JWTAuthenticationComponent);
+    this.dataSource(MongoDataSource, UserServiceBindings.DATASOURCE_NAME);
   }
 }
