@@ -3,11 +3,16 @@ import {CartItem} from './cart-item.model';
 
 @model()
 export class Cart extends Entity {
+  @property({
+    type: 'string',
+    generated: true,
+    id: true,
+  })
+  id?: string;
 
   @property({
     type: 'string',
     required: true,
-    id: true,
   })
   userId: string;
 

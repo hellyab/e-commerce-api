@@ -1,4 +1,5 @@
-import {service} from '@loopback/core';
+import {authenticate} from '@loopback/authentication';
+import {inject, service} from '@loopback/core';
 import {
   Count,
   CountSchema,
@@ -16,20 +17,49 @@ import {
   post,
   put,
   requestBody,
+  SchemaObject,
 } from '@loopback/rest';
+import {SecurityBindings, UserProfile} from '@loopback/security';
 import {Cart, CartItem} from '../models';
 import {CartRepository} from '../repositories';
 import {CartService} from '../services';
 
+export const CartItemsSchema: SchemaObject = {
+  type: 'array',
+  items: {
+    type: 'object',
+    required: ['itemId', 'quantity'],
+    properties: {
+      quantity: {
+        type: 'number',
+      },
+      itemId: {
+        type: 'string',
+      },
+    },
+  },
+};
+
+export const CartItemsRequestBody = {
+  description: 'The array of items to put in the cart',
+  required: true,
+  content: {
+    'application/json': {schema: CartItemsSchema},
+  },
+};
+
+@authenticate('jwt')
 export class CartController {
   constructor(
     @repository(CartRepository)
     public cartRepository: CartRepository,
     @service(CartService)
     public cartService: CartService,
+    @inject(SecurityBindings.USER)
+    private user: UserProfile,
   ) {}
 
-  @post('/cart/{userId}/add', {
+  @post('/user/cart/items', {
     responses: {
       '200': {
         description: 'Current Cart instance',
@@ -38,24 +68,13 @@ export class CartController {
     },
   })
   async addCartItem(
-    @requestBody({
-      content: {
-        'application/json': {
-          schema: {
-            type: 'array',
-            items: getModelSchemaRef(CartItem, {includeRelations: true}),
-          },
-        },
-      },
-    })
+    @requestBody(CartItemsRequestBody)
     cartItems: CartItem[],
-    @param.path.string('userId')
-    userId: string,
   ): Promise<Cart> {
-    return this.cartService.addCartItem(cartItems, userId);
+    return this.cartService.addCartItem(cartItems, this.user.id);
   }
 
-  @del('/cart/{userId}/remove/{id}', {
+  @del('/user/cart/items/{id}', {
     responses: {
       '200': {
         description: 'Current Cart instance',
@@ -64,15 +83,13 @@ export class CartController {
     },
   })
   async removeCartItem(
-    @param.path.string('userId')
-    userId: string,
-    @param.path.string('id')
+    @param.path.string('itemId')
     id: string,
   ): Promise<Cart> {
-    return this.cartService.removeCartItem(id, userId);
+    return this.cartService.removeCartItem(id, this.user.id);
   }
 
-  @post('/cart', {
+  @post('/user/cart', {
     responses: {
       '200': {
         description: 'Cart model instance',
@@ -92,10 +109,11 @@ export class CartController {
     })
     cart: Cart,
   ): Promise<Cart> {
+    cart.userId = this.user.id;
     return this.cartRepository.create(cart);
   }
 
-  @get('/cart', {
+  @get('/carts', {
     responses: {
       '200': {
         description: 'Array of Cart model instances',
@@ -114,7 +132,7 @@ export class CartController {
     return this.cartRepository.find(filter);
   }
 
-  @patch('/cart', {
+  @patch('/carts', {
     responses: {
       '200': {
         description: 'Cart PATCH success count',
@@ -136,7 +154,28 @@ export class CartController {
     return this.cartRepository.updateAll(cart, where);
   }
 
-  @get('/cart/{id}', {
+  @get('/user/cart', {
+    responses: {
+      '200': {
+        description: 'Cart model instance',
+        content: {
+          'application/json': {
+            schema: getModelSchemaRef(Cart, {includeRelations: true}),
+          },
+        },
+      },
+    },
+  })
+  async findOne(
+    @param.filter(Cart, {exclude: 'where'}) filter?: FilterExcludingWhere<Cart>,
+  ): Promise<Cart | null> {
+    return await this.cartRepository.findOne({
+      ...filter,
+      where: {userId: this.user.id},
+    });
+  }
+
+  @get('/carts/{id}', {
     responses: {
       '200': {
         description: 'Cart model instance',
@@ -155,7 +194,7 @@ export class CartController {
     return this.cartRepository.findById(id, filter);
   }
 
-  @patch('/cart/{id}', {
+  @patch('/carts/{id}', {
     responses: {
       '204': {
         description: 'Cart PATCH success',
@@ -176,7 +215,7 @@ export class CartController {
     await this.cartRepository.updateById(id, cart);
   }
 
-  @put('/cart/{id}', {
+  @put('/carts/{id}', {
     responses: {
       '204': {
         description: 'Cart PUT success',
@@ -190,7 +229,7 @@ export class CartController {
     await this.cartRepository.replaceById(id, cart);
   }
 
-  @del('/cart/{id}', {
+  @del('/carts/{id}', {
     responses: {
       '204': {
         description: 'Cart DELETE success',

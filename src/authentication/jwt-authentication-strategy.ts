@@ -26,6 +26,7 @@ export class JWTAuthenticationStrategy
   ) {}
 
   async authenticate(request: Request): Promise<UserProfile | undefined> {
+
     const token: string = this.extractCredentials(request);
     const user: User = await this.tokenService.verifyToken(token);
     const userProfile: UserProfile = await this.userService.convertToUserProfile(

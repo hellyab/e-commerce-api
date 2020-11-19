@@ -23,8 +23,7 @@ export class MongoDataSource
     @inject('datasources.config.Mongo', {optional: true})
     dsConfig: object = config,
   ) {
-    console.log();
-    
+
     Object.assign(dsConfig, {
       url: process.env.MONGO_DB_URL,
     });

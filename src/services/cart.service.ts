@@ -21,6 +21,7 @@ export class CartService {
     });
 
     //TODO: fix the time complexity here
+    //TODO: add total price updates
 
     if (cart != null) {
       [...cartItems].forEach(cartItem => {

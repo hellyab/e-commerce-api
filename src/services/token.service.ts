@@ -1,8 +1,10 @@
 import {BindingScope, inject, injectable} from '@loopback/core';
 import {HttpErrors} from '@loopback/rest';
-import jwt from 'jsonwebtoken';
+import {promisify} from 'util';
 import {TokenServiceBindings} from '../keys';
 import {User, UserDto} from '../models';
+const jwt = require('jsonwebtoken');
+const verifyAsync = promisify(jwt.verify);
 
 @injectable({scope: BindingScope.TRANSIENT})
 export class TokenService {
@@ -13,7 +15,7 @@ export class TokenService {
     private jwtExpiresIn: string,
   ) {}
 
-  verifyToken(token: string): Promise<User> {
+  async verifyToken(token: string): Promise<User> {
     if (!token) {
       throw new HttpErrors.Unauthorized(
         `Error verifying token : 'token' is null`,
@@ -21,8 +23,8 @@ export class TokenService {
     }
 
     try {
-      let userJSONString = jwt.verify(token, this.jwtSecret);
-      return Promise.resolve(new User(JSON.parse(userJSONString.toString())));
+      let user: User = await verifyAsync(token, this.jwtSecret);
+      return Promise.resolve(user);
     } catch (e) {
       throw new HttpErrors.Unauthorized(`Error verifying token : ${e.message}`);
     }
@@ -34,11 +36,11 @@ export class TokenService {
       );
     }
     try {
-      return Promise.resolve(
-        jwt.sign(user, this.jwtSecret, {
-          expiresIn: Number(this.jwtExpiresIn),
-        }),
-      );
+      const token = jwt.sign(user, this.jwtSecret, {
+        expiresIn: Number(this.jwtExpiresIn),
+      });
+
+      return Promise.resolve(token);
     } catch (e) {
       throw new HttpErrors.Unauthorized(`Error encoding token : ${e.message}`);
     }

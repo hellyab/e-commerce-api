@@ -1,9 +1,11 @@
 import {registerAuthenticationStrategy} from '@loopback/authentication';
+import {SecuritySpecEnhancer} from '@loopback/authentication-jwt';
 import {
   Application,
   Binding,
   Component,
   CoreBindings,
+  createBindingFromClass,
   inject,
 } from '@loopback/core';
 import {
@@ -29,7 +31,7 @@ export class JWTAuthenticationComponent implements Component {
     // user bindings
     Binding.bind(UserServiceBindings.USER_SERVICE).toClass(UserService),
     Binding.bind(UserServiceBindings.USER_REPOSITORY).toClass(UserRepository),
-    // createBindingFromClass(SecuritySpecEnhancer),
+    createBindingFromClass(SecuritySpecEnhancer),
     // ///refresh bindings
     // Binding.bind(RefreshTokenServiceBindings.REFRESH_TOKEN_SERVICE).toClass(
     //   RefreshTokenService,

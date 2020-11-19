@@ -46,7 +46,7 @@ export class UserService implements LBUserService<User, Credentials> {
     if (user != null) {
       let correct = compare(credentials.password, user.password);
       if (correct) {
-        return Promise.resolve(new User());
+        return Promise.resolve(user);
       }
     }
     return Promise.reject(null);
